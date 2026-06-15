@@ -28,6 +28,13 @@ local speedConnection = nil
 local infJumpsEnabled = false
 local infJumpsConnection = nil
 
+local noFallEnabled = false
+local noFallConnection = nil
+
+local noclipEnabled = false
+local noclipMethod = "Character"
+local noclipConnection = nil
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -38,9 +45,7 @@ BlatantGroup:AddDropdown("SpeedMethod", {
     Text = "Speed Method",
     Values = { "SeatSeek", "CFrame", "Motor" },
     Default = "SeatSeek",
-    Callback = function(Value)
-        speedMethod = Value
-    end,
+    Callback = function(Value) speedMethod = Value end,
 })
 
 BlatantGroup:AddSlider("SpeedValue", {
@@ -49,22 +54,8 @@ BlatantGroup:AddSlider("SpeedValue", {
     Min = 16,
     Max = 40,
     Rounding = 0,
-    Callback = function(Value)
-        speedValue = Value
-    end,
+    Callback = function(Value) speedValue = Value end,
 })
-
-local function cleanup()
-    local char = LocalPlayer.Character
-    if char then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            for _, v in ipairs(hrp:GetChildren()) do
-                if v:IsA("Motor6D") and v.Name == "SpeedMotor" then v:Destroy() end
-            end
-        end
-    end
-end
 
 local function speedLoop()
     local char = LocalPlayer.Character
@@ -99,21 +90,31 @@ local function speedLoop()
     end
 end
 
+local function noclipLoop()
+    if not noclipEnabled then return end
+    local char = LocalPlayer.Character
+    if not char then return end
+    if noclipMethod == "Character" then
+        for _, v in ipairs(char:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
+    elseif noclipMethod == "FFlag" then
+        for _, v in ipairs(char:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false v.Massless = true end end
+    end
+end
+
+BlatantGroup:AddDropdown("NoclipMethod", {
+    Text = "Noclip Method",
+    Values = { "Character", "FFlag" },
+    Default = "Character",
+    Callback = function(Value) noclipMethod = Value end,
+})
+
 BlatantGroup:AddToggle("SpeedEnabled", {
     Text = "Speed Hack",
     Default = false,
-    Risky = true,
     Callback = function(Value)
         speedEnabled = Value
-        if Value then
-            speedConnection = RunService.Heartbeat:Connect(speedLoop)
-        else
-            if speedConnection then
-                speedConnection:Disconnect()
-                speedConnection = nil
-            end
-            cleanup()
-        end
+        if Value then speedConnection = RunService.Heartbeat:Connect(speedLoop)
+        else if speedConnection then speedConnection:Disconnect() speedConnection = nil end end
     end,
 })
 
@@ -125,15 +126,45 @@ BlatantGroup:AddToggle("InfJumpsEnabled", {
         if Value then
             infJumpsConnection = UserInputService.JumpRequest:Connect(function()
                 local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    hrp.Velocity = Vector3.new(hrp.Velocity.X, 50, hrp.Velocity.Z)
+                if hrp then hrp.Velocity = Vector3.new(hrp.Velocity.X, 50, hrp.Velocity.Z) end
+            end)
+        else if infJumpsConnection then infJumpsConnection:Disconnect() infJumpsConnection = nil end end
+    end,
+})
+
+BlatantGroup:AddToggle("NoFallEnabled", {
+    Text = "No Fall",
+    Default = false,
+    Callback = function(Value)
+        noFallEnabled = Value
+        if Value then
+            noFallConnection = RunService.Heartbeat:Connect(function()
+                local char = LocalPlayer.Character
+                if not char then return end
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+                if hrp.Velocity.Y >= 0 then return end
+                local ray = Ray.new(hrp.Position, Vector3.new(0, -500, 0))
+                local hit = workspace:FindPartOnRay(ray, char)
+                if hit then
+                    local dist = (hrp.Position - hit.Position).Magnitude
+                    if dist > 10 and dist <= 30 then
+                        hrp.Velocity = Vector3.new(hrp.Velocity.X, hrp.Velocity.Y / 1.5, hrp.Velocity.Z)
+                    elseif dist <= 10 then
+                        hrp.Velocity = Vector3.new(hrp.Velocity.X, hrp.Velocity.Y / 3, hrp.Velocity.Z)
+                    end
                 end
             end)
-        else
-            if infJumpsConnection then
-                infJumpsConnection:Disconnect()
-                infJumpsConnection = nil
-            end
-        end
+        else if noFallConnection then noFallConnection:Disconnect() noFallConnection = nil end end
+    end,
+})
+
+BlatantGroup:AddToggle("NoclipEnabled", {
+    Text = "Noclip",
+    Default = false,
+    Callback = function(Value)
+        noclipEnabled = Value
+        if Value then noclipConnection = RunService.Heartbeat:Connect(noclipLoop)
+        else if noclipConnection then noclipConnection:Disconnect() noclipConnection = nil end end
     end,
 })

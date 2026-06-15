@@ -35,6 +35,10 @@ local noclipEnabled = false
 local noclipMethod = "Character"
 local noclipConnection = nil
 
+local invisEnabled = false
+local invisConnection = nil
+local invisPlatform = nil
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -166,5 +170,42 @@ BlatantGroup:AddToggle("NoclipEnabled", {
         noclipEnabled = Value
         if Value then noclipConnection = RunService.Heartbeat:Connect(noclipLoop)
         else if noclipConnection then noclipConnection:Disconnect() noclipConnection = nil end end
+    end,
+})
+
+BlatantGroup:AddToggle("InvisEnabled", {
+    Text = "Invisible",
+    Default = false,
+    Callback = function(Value)
+        invisEnabled = Value
+        local char = LocalPlayer.Character
+        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+        local hrp = char.HumanoidRootPart
+        
+        if invisEnabled then
+            invisPlatform = Instance.new("Part")
+            invisPlatform.Size = Vector3.new(10, 1, 10)
+            invisPlatform.Anchored = true
+            invisPlatform.Transparency = 1
+            invisPlatform.Parent = workspace
+            
+            invisConnection = RunService.Heartbeat:Connect(function()
+                if not invisEnabled then return end
+                local char = LocalPlayer.Character
+                if not char or not invisPlatform then return end
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    invisPlatform.Position = Vector3.new(hrp.Position.X, -20, hrp.Position.Z)
+                    hrp.CFrame = CFrame.new(hrp.Position.X, -17, hrp.Position.Z)
+                end
+            end)
+        else
+            if invisConnection then invisConnection:Disconnect() invisConnection = nil end
+            if invisPlatform then invisPlatform:Destroy() invisPlatform = nil end
+            local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y + 25, hrp.Position.Z)
+            end
+        end
     end,
 })

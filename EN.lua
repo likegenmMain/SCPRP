@@ -25,6 +25,9 @@ local speedValue = 30
 local speedEnabled = false
 local speedConnection = nil
 
+local infJumpsEnabled = false
+local infJumpsConnection = nil
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -110,6 +113,27 @@ BlatantGroup:AddToggle("SpeedEnabled", {
                 speedConnection = nil
             end
             cleanup()
+        end
+    end,
+})
+
+BlatantGroup:AddToggle("InfJumpsEnabled", {
+    Text = "Inf Jumps",
+    Default = false,
+    Callback = function(Value)
+        infJumpsEnabled = Value
+        if Value then
+            infJumpsConnection = UserInputService.JumpRequest:Connect(function()
+                local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    hrp.Velocity = Vector3.new(hrp.Velocity.X, 50, hrp.Velocity.Z)
+                end
+            end)
+        else
+            if infJumpsConnection then
+                infJumpsConnection:Disconnect()
+                infJumpsConnection = nil
+            end
         end
     end,
 })

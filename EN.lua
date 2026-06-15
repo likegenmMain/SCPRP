@@ -33,7 +33,7 @@ local LocalPlayer = Players.LocalPlayer
 
 BlatantGroup:AddDropdown("SpeedMethod", {
     Text = "Speed Method",
-    Values = { "SeatSeek", "CFrame", "BodyPosition", "Motor" },
+    Values = { "SeatSeek", "CFrame", "Motor" },
     Default = "SeatSeek",
     Callback = function(Value)
         speedMethod = Value
@@ -56,7 +56,6 @@ local function cleanup()
     if char then
         local hrp = char:FindFirstChild("HumanoidRootPart")
         if hrp then
-            if hrp:FindFirstChild("BodyPosition") then hrp.BodyPosition:Destroy() end
             for _, v in ipairs(hrp:GetChildren()) do
                 if v:IsA("Motor6D") and v.Name == "SpeedMotor" then v:Destroy() end
             end
@@ -84,15 +83,6 @@ local function speedLoop()
             hrp.CFrame = hrp.CFrame + mv.Unit * speedValue * 0.01
         elseif speedMethod == "CFrame" then
             hrp.CFrame = hrp.CFrame + mv.Unit * 0.5
-        elseif speedMethod == "BodyPosition" then
-            if not hrp:FindFirstChild("BodyPosition") then
-                local bp = Instance.new("BodyPosition")
-                bp.MaxForce = Vector3.new(math.huge, 0, math.huge)
-                bp.P = 10000
-                bp.D = 1000
-                bp.Parent = hrp
-            end
-            hrp.BodyPosition.Position = hrp.Position + mv.Unit * speedValue * 0.5
         elseif speedMethod == "Motor" then
             if not hrp:FindFirstChild("SpeedMotor") then
                 local motor = Instance.new("Motor6D")

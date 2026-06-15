@@ -20,22 +20,21 @@ local Tabs = {
 
 local BlatantGroup = Tabs.Blatant:AddLeftGroupbox("Movement")
 
-local speedMethod = "Velocity"
-local speedValue = 50
+local speedMethod = "SeatSeek"
+local speedValue = 30
 local speedEnabled = false
 local speedConnection = nil
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
 BlatantGroup:AddDropdown("SpeedMethod", {
     Text = "Speed Method",
-    Values = { "Velocity", "SeatSeek", "Tween", "CFrame", "BodyPosition", "Motor" },
-    Default = "Velocity",
+    Values = { "SeatSeek", "CFrame", "BodyPosition", "Motor" },
+    Default = "SeatSeek",
     Callback = function(Value)
         speedMethod = Value
     end,
@@ -43,9 +42,9 @@ BlatantGroup:AddDropdown("SpeedMethod", {
 
 BlatantGroup:AddSlider("SpeedValue", {
     Text = "Speed Value",
-    Default = 50,
+    Default = 30,
     Min = 16,
-    Max = 200,
+    Max = 40,
     Rounding = 0,
     Callback = function(Value)
         speedValue = Value
@@ -81,13 +80,8 @@ local function speedLoop()
     if UserInputService:IsKeyDown(Enum.KeyCode.D) then mv += Vector3.new(right.X, 0, right.Z).Unit end
     
     if mv.Magnitude > 0 then
-        if speedMethod == "Velocity" then
-            hrp.Velocity = Vector3.new(mv.X * speedValue, hrp.Velocity.Y, mv.Z * speedValue)
-        elseif speedMethod == "SeatSeek" then
+        if speedMethod == "SeatSeek" then
             hrp.CFrame = hrp.CFrame + mv.Unit * speedValue * 0.01
-        elseif speedMethod == "Tween" then
-            local target = hrp.CFrame + mv.Unit * speedValue * 0.05
-            TweenService:Create(hrp, TweenInfo.new(0.05, Enum.EasingStyle.Linear), {CFrame = target}):Play()
         elseif speedMethod == "CFrame" then
             hrp.CFrame = hrp.CFrame + mv.Unit * 0.5
         elseif speedMethod == "BodyPosition" then

@@ -20,12 +20,6 @@ local function doFarm()
         
         local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
         if hum then hum.Health = 0 end
-        
-        task.wait(3)
-        
-        local char = LocalPlayer.Character
-        local hum = char and char:FindFirstChild("Humanoid")
-        if hum then hum.Health = 0 end
     end
 end
 
